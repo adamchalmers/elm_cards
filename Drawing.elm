@@ -4,9 +4,21 @@ import Cards
 import Color
 import Graphics.Collage as C
 import Text
+import Array
 
 width = 40
 height = 70
+
+drawCards : Cards.Deck -> C.Form
+drawCards deck = drawCardsGap deck 0
+
+drawCardsGap : Cards.Deck -> Int -> C.Form
+drawCardsGap deck gap = 
+    let
+        nudge = \i card -> C.move (toFloat ((width+gap)*i), 0) (drawCard card)
+    in
+        Array.indexedMap nudge deck |> Array.toList |> C.group
+
 
 drawCard : Cards.Card -> C.Form
 drawCard card =

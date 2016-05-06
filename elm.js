@@ -6807,6 +6807,7 @@ Elm.Drawing.make = function (_elm) {
    _elm.Drawing = _elm.Drawing || {};
    if (_elm.Drawing.values) return _elm.Drawing.values;
    var _U = Elm.Native.Utils.make(_elm),
+   $Array = Elm.Array.make(_elm),
    $Basics = Elm.Basics.make(_elm),
    $Cards = Elm.Cards.make(_elm),
    $Color = Elm.Color.make(_elm),
@@ -6867,7 +6868,21 @@ Elm.Drawing.make = function (_elm) {
                                              ,drawSuit(card.suit)
                                              ,A2($Graphics$Collage.move,{ctor: "_Tuple2",_0: (0 - width) / 3,_1: height / 3},A2(drawFace,col,card.face))]));
    };
-   return _elm.Drawing.values = {_op: _op,width: width,height: height,drawCard: drawCard,drawFace: drawFace,drawSuit: drawSuit,red: red,blk: blk};
+   var drawCardsGap = F2(function (deck,gap) {
+      var nudge = F2(function (i,card) {    return A2($Graphics$Collage.move,{ctor: "_Tuple2",_0: $Basics.toFloat((width + gap) * i),_1: 0},drawCard(card));});
+      return $Graphics$Collage.group($Array.toList(A2($Array.indexedMap,nudge,deck)));
+   });
+   var drawCards = function (deck) {    return A2(drawCardsGap,deck,0);};
+   return _elm.Drawing.values = {_op: _op
+                                ,width: width
+                                ,height: height
+                                ,drawCards: drawCards
+                                ,drawCardsGap: drawCardsGap
+                                ,drawCard: drawCard
+                                ,drawFace: drawFace
+                                ,drawSuit: drawSuit
+                                ,red: red
+                                ,blk: blk};
 };
 Elm.Main = Elm.Main || {};
 Elm.Main.make = function (_elm) {
@@ -6875,6 +6890,7 @@ Elm.Main.make = function (_elm) {
    _elm.Main = _elm.Main || {};
    if (_elm.Main.values) return _elm.Main.values;
    var _U = Elm.Native.Utils.make(_elm),
+   $Array = Elm.Array.make(_elm),
    $Basics = Elm.Basics.make(_elm),
    $Cards = Elm.Cards.make(_elm),
    $Debug = Elm.Debug.make(_elm),
@@ -6889,9 +6905,13 @@ Elm.Main.make = function (_elm) {
    var seed = $Random.initialSeed(98447);
    var fst = function (_p0) {    var _p1 = _p0;return _p1._0;};
    var main = function () {
+      var six = {face: $Cards.Six,suit: $Cards.Diamonds};
+      var kin = {face: $Cards.King,suit: $Cards.Spades};
+      var two = {face: $Cards.Two,suit: $Cards.Clubs};
       var ace = {face: $Cards.Queen,suit: $Cards.Hearts};
+      var deck = $Array.fromList(_U.list([ace,two,kin,six]));
       var card = A2($Maybe.withDefault,ace,fst(A2($Cards.rndFrom,seed,$Cards.sortedDeck)));
-      return A3($Graphics$Collage.collage,400,400,_U.list([$Drawing.drawCard(ace)]));
+      return A3($Graphics$Collage.collage,400,400,_U.list([A2($Drawing.drawCardsGap,deck,5)]));
    }();
    return _elm.Main.values = {_op: _op,fst: fst,seed: seed,main: main};
 };
