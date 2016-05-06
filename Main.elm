@@ -8,7 +8,7 @@ fst (a,b,c) = a
 seed = Random.initialSeed 98447
 main = 
     let
-        ace = {face = Cards.Ace, suit = Cards.Spades}
+        ace = {face = Cards.Queen, suit = Cards.Hearts}
         card = Maybe.withDefault ace (rndFrom seed sortedDeck |> fst)
     in
         C.collage 400 400 [drawCard ace]
