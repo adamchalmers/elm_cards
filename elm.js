@@ -6824,6 +6824,13 @@ Elm.Drawing.make = function (_elm) {
    var drawFace = F2(function (col,face) {    return $Graphics$Collage.text(A2($Text.color,col,$Text.fromString($Cards.faceToString(face))));});
    var height = 70;
    var width = 40;
+   var nudge = F3(function (i,cols,gap) {
+      var r = A2($Basics.rem,i,cols);
+      var x = (width + gap) * r;
+      var q = i / cols | 0;
+      var y = (height + gap) * q;
+      return {ctor: "_Tuple2",_0: $Basics.toFloat(x),_1: $Basics.toFloat(y)};
+   });
    var drawSuit = function (suit) {
       var w = width / 3;
       var w$ = w / 2;
@@ -6868,16 +6875,20 @@ Elm.Drawing.make = function (_elm) {
                                              ,drawSuit(card.suit)
                                              ,A2($Graphics$Collage.move,{ctor: "_Tuple2",_0: (0 - width) / 3,_1: height / 3},A2(drawFace,col,card.face))]));
    };
-   var drawCardsGap = F2(function (deck,gap) {
+   var drawRow = F2(function (deck,gap) {
       var nudge = F2(function (i,card) {    return A2($Graphics$Collage.move,{ctor: "_Tuple2",_0: $Basics.toFloat((width + gap) * i),_1: 0},drawCard(card));});
       return $Graphics$Collage.group($Array.toList(A2($Array.indexedMap,nudge,deck)));
    });
-   var drawCards = function (deck) {    return A2(drawCardsGap,deck,0);};
+   var drawGrid = F3(function (deck,gap,cols) {
+      var fn = F2(function (i,card) {    return A2($Graphics$Collage.move,A3(nudge,i,cols,gap),drawCard(card));});
+      return $Graphics$Collage.group($Array.toList(A2($Array.indexedMap,fn,deck)));
+   });
    return _elm.Drawing.values = {_op: _op
                                 ,width: width
                                 ,height: height
-                                ,drawCards: drawCards
-                                ,drawCardsGap: drawCardsGap
+                                ,drawRow: drawRow
+                                ,drawGrid: drawGrid
+                                ,nudge: nudge
                                 ,drawCard: drawCard
                                 ,drawFace: drawFace
                                 ,drawSuit: drawSuit
@@ -6911,7 +6922,7 @@ Elm.Main.make = function (_elm) {
       var ace = {face: $Cards.Queen,suit: $Cards.Hearts};
       var deck = $Array.fromList(_U.list([ace,two,kin,six]));
       var card = A2($Maybe.withDefault,ace,fst(A2($Cards.rndFrom,seed,$Cards.sortedDeck)));
-      return A3($Graphics$Collage.collage,400,400,_U.list([A2($Drawing.drawCardsGap,deck,5)]));
+      return A3($Graphics$Collage.collage,400,400,_U.list([A3($Drawing.drawGrid,deck,10,2)]));
    }();
    return _elm.Main.values = {_op: _op,fst: fst,seed: seed,main: main};
 };

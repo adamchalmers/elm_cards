@@ -16,4 +16,4 @@ main =
         deck = Array.fromList [ace, two, kin, six]
         card = Maybe.withDefault ace (rndFrom seed sortedDeck |> fst)
     in
-        C.collage 400 400 [drawCardsGap deck 5]
+        C.collage 400 400 [drawGrid deck 10 2]

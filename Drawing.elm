@@ -9,16 +9,31 @@ import Array
 width = 40
 height = 70
 
-drawCards : Cards.Deck -> C.Form
-drawCards deck = drawCardsGap deck 0
-
-drawCardsGap : Cards.Deck -> Int -> C.Form
-drawCardsGap deck gap = 
+-- Draws a deck of cards in a row, leaving \gap pixels between them.
+drawRow : Cards.Deck -> Int -> C.Form
+drawRow deck gap = 
     let
         nudge = \i card -> C.move (toFloat ((width+gap)*i), 0) (drawCard card)
     in
         Array.indexedMap nudge deck |> Array.toList |> C.group
 
+
+drawGrid : Cards.Deck -> Int -> Int -> C.Form
+drawGrid deck gap cols =
+    let
+        fn = \i card -> C.move (nudge i cols gap) (drawCard card)
+    in
+        Array.toList (Array.indexedMap fn deck) |> C.group
+
+nudge : Int -> Int -> Int -> (Float, Float)
+nudge i cols gap =
+    let 
+        q = i // cols
+        r = i `rem` cols
+        x = (width+gap)*r
+        y = (height+gap)*q
+    in
+        (toFloat x, toFloat y)
 
 drawCard : Cards.Card -> C.Form
 drawCard card =
@@ -36,9 +51,11 @@ drawCard card =
             , drawFace col card.face |> C.move (-width/3, height/3)
             ]
 
+
 drawFace : Color.Color -> Cards.Face -> C.Form
 drawFace col face =
     Text.color col (Text.fromString (Cards.faceToString face)) |> C.text
+
 
 drawSuit : Cards.Suit -> C.Form
 drawSuit suit =
@@ -69,6 +86,7 @@ drawSuit suit =
                     ]
             Cards.Diamonds ->
                 red (C.rect w w) |> C.rotate (pi/4)
-                
+            
+    
 red = C.filled Color.red
 blk = C.filled Color.black
