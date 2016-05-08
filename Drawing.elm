@@ -4,7 +4,6 @@ import Cards
 import Color
 import Graphics.Collage as C
 import Text
-import Array
 
 width = 40
 height = 70
@@ -15,7 +14,7 @@ drawRow deck gap =
     let
         nudge = \i card -> C.move (toFloat ((width+gap)*i), 0) (drawCard card)
     in
-        Array.indexedMap nudge deck |> Array.toList |> C.group
+        List.indexedMap nudge deck |> C.group
 
 
 drawGrid : Cards.Deck -> Int -> Int -> C.Form
@@ -23,7 +22,7 @@ drawGrid deck gap cols =
     let
         fn = \i card -> C.move (nudge i cols gap) (drawCard card)
     in
-        Array.toList (Array.indexedMap fn deck) |> C.group
+        (List.indexedMap fn deck) |> C.group
 
 nudge : Int -> Int -> Int -> (Float, Float)
 nudge i cols gap =

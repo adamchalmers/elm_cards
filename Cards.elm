@@ -1,13 +1,12 @@
 module Cards where
 
 import Random
-import Array
 
 -- DATA
 type alias Card = {face: Face, suit: Suit}
 type Suit = Clubs | Spades | Diamonds | Hearts
 type Face = Ace | Two | Three | Four | Five | Six | Seven | Eight | Nine | Ten | Jack | Queen | King
-type alias Deck = Array.Array Card
+type alias Deck = List Card
 
 intToFace : Int -> Face
 intToFace n =
@@ -72,16 +71,4 @@ intToCard n =
 -- DECK OPERATIONS
 
 sortedDeck : Deck
-sortedDeck = List.map intToCard [0..51] |> Array.fromList
-
--- rndFrom removes a random card from the deck
-rndFrom : Random.Seed -> Deck -> (Maybe Card, Deck, Random.Seed)
-rndFrom seed deck =
-    let
-        n = (Array.length deck) - 1
-        (i, s0) = Random.generate (Random.int 0 n) seed
-        card = Array.get i deck
-        before = Array.slice 0 i deck 
-        after = Array.slice (i+1) (Array.length deck) deck
-    in 
-        (card, Array.append before after, s0)
+sortedDeck = List.map intToCard [0..51]

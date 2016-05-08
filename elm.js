@@ -6695,7 +6695,6 @@ Elm.Cards.make = function (_elm) {
    _elm.Cards = _elm.Cards || {};
    if (_elm.Cards.values) return _elm.Cards.values;
    var _U = Elm.Native.Utils.make(_elm),
-   $Array = Elm.Array.make(_elm),
    $Basics = Elm.Basics.make(_elm),
    $Debug = Elm.Debug.make(_elm),
    $List = Elm.List.make(_elm),
@@ -6704,19 +6703,9 @@ Elm.Cards.make = function (_elm) {
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
    var _op = {};
-   var rndFrom = F2(function (seed,deck) {
-      var n = $Array.length(deck) - 1;
-      var _p0 = A2($Random.generate,A2($Random.$int,0,n),seed);
-      var i = _p0._0;
-      var s0 = _p0._1;
-      var card = A2($Array.get,i,deck);
-      var before = A3($Array.slice,0,i,deck);
-      var after = A3($Array.slice,i + 1,$Array.length(deck),deck);
-      return {ctor: "_Tuple3",_0: card,_1: A2($Array.append,before,after),_2: s0};
-   });
    var faceToString = function (face) {
-      var _p1 = face;
-      switch (_p1.ctor)
+      var _p0 = face;
+      switch (_p0.ctor)
       {case "Ace": return "A";
          case "Two": return "2";
          case "Three": return "3";
@@ -6745,8 +6734,8 @@ Elm.Cards.make = function (_elm) {
    var Two = {ctor: "Two"};
    var Ace = {ctor: "Ace"};
    var intToFace = function (n) {
-      var _p2 = n;
-      switch (_p2)
+      var _p1 = n;
+      switch (_p1)
       {case 0: return Ace;
          case 1: return Two;
          case 2: return Three;
@@ -6766,11 +6755,11 @@ Elm.Cards.make = function (_elm) {
    var Diamonds = {ctor: "Diamonds"};
    var Spades = {ctor: "Spades"};
    var Clubs = {ctor: "Clubs"};
-   var intToSuit = function (n) {    var _p3 = n;switch (_p3) {case 0: return Clubs;case 1: return Spades;case 2: return Diamonds;default: return Hearts;}};
+   var intToSuit = function (n) {    var _p2 = n;switch (_p2) {case 0: return Clubs;case 1: return Spades;case 2: return Diamonds;default: return Hearts;}};
    var genSuit = A2($Random.map,intToSuit,A2($Random.$int,0,3));
    var genCard = A3($Random.map2,F2(function (f,s) {    return {face: f,suit: s};}),genFace,genSuit);
    var intToCard = function (n) {    var r = A2($Basics.rem,n,13);var q = n / 13 | 0;return {face: intToFace(r),suit: intToSuit(q)};};
-   var sortedDeck = $Array.fromList(A2($List.map,intToCard,_U.range(0,51)));
+   var sortedDeck = A2($List.map,intToCard,_U.range(0,51));
    var Card = F2(function (a,b) {    return {face: a,suit: b};});
    return _elm.Cards.values = {_op: _op
                               ,Card: Card
@@ -6798,8 +6787,7 @@ Elm.Cards.make = function (_elm) {
                               ,genSuit: genSuit
                               ,genCard: genCard
                               ,intToCard: intToCard
-                              ,sortedDeck: sortedDeck
-                              ,rndFrom: rndFrom};
+                              ,sortedDeck: sortedDeck};
 };
 Elm.Drawing = Elm.Drawing || {};
 Elm.Drawing.make = function (_elm) {
@@ -6807,7 +6795,6 @@ Elm.Drawing.make = function (_elm) {
    _elm.Drawing = _elm.Drawing || {};
    if (_elm.Drawing.values) return _elm.Drawing.values;
    var _U = Elm.Native.Utils.make(_elm),
-   $Array = Elm.Array.make(_elm),
    $Basics = Elm.Basics.make(_elm),
    $Cards = Elm.Cards.make(_elm),
    $Color = Elm.Color.make(_elm),
@@ -6877,11 +6864,11 @@ Elm.Drawing.make = function (_elm) {
    };
    var drawRow = F2(function (deck,gap) {
       var nudge = F2(function (i,card) {    return A2($Graphics$Collage.move,{ctor: "_Tuple2",_0: $Basics.toFloat((width + gap) * i),_1: 0},drawCard(card));});
-      return $Graphics$Collage.group($Array.toList(A2($Array.indexedMap,nudge,deck)));
+      return $Graphics$Collage.group(A2($List.indexedMap,nudge,deck));
    });
    var drawGrid = F3(function (deck,gap,cols) {
       var fn = F2(function (i,card) {    return A2($Graphics$Collage.move,A3(nudge,i,cols,gap),drawCard(card));});
-      return $Graphics$Collage.group($Array.toList(A2($Array.indexedMap,fn,deck)));
+      return $Graphics$Collage.group(A2($List.indexedMap,fn,deck));
    });
    return _elm.Drawing.values = {_op: _op
                                 ,width: width
@@ -6895,34 +6882,84 @@ Elm.Drawing.make = function (_elm) {
                                 ,red: red
                                 ,blk: blk};
 };
+Elm.Rules = Elm.Rules || {};
+Elm.Rules.make = function (_elm) {
+   "use strict";
+   _elm.Rules = _elm.Rules || {};
+   if (_elm.Rules.values) return _elm.Rules.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Cards = Elm.Cards.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var _op = {};
+   var pairAdd = F2(function (_p1,_p0) {    var _p2 = _p1;var _p3 = _p0;return {ctor: "_Tuple2",_0: _p2._0 + _p3._0,_1: _p2._1 + _p3._1};});
+   var order = function (deck) {
+      var _p4 = deck;
+      if (_p4.ctor === "[]") {
+            return {ctor: "_Tuple2",_0: 0,_1: 0};
+         } else {
+            if (_p4._1.ctor === "[]") {
+                  var _p5 = _p4._0.face;
+                  switch (_p5.ctor)
+                  {case "Ace": return {ctor: "_Tuple2",_0: 0,_1: 1};
+                     case "Two": return {ctor: "_Tuple2",_0: 2,_1: 0};
+                     case "Three": return {ctor: "_Tuple2",_0: 3,_1: 0};
+                     case "Four": return {ctor: "_Tuple2",_0: 4,_1: 0};
+                     case "Five": return {ctor: "_Tuple2",_0: 5,_1: 0};
+                     case "Six": return {ctor: "_Tuple2",_0: 6,_1: 0};
+                     case "Seven": return {ctor: "_Tuple2",_0: 7,_1: 0};
+                     case "Eight": return {ctor: "_Tuple2",_0: 8,_1: 0};
+                     case "Nine": return {ctor: "_Tuple2",_0: 9,_1: 0};
+                     case "Ten": return {ctor: "_Tuple2",_0: 10,_1: 0};
+                     case "Jack": return {ctor: "_Tuple2",_0: 10,_1: 0};
+                     case "Queen": return {ctor: "_Tuple2",_0: 10,_1: 0};
+                     default: return {ctor: "_Tuple2",_0: 10,_1: 0};}
+               } else {
+                  return A2(pairAdd,order(_U.list([_p4._0])),order(_p4._1));
+               }
+         }
+   };
+   return _elm.Rules.values = {_op: _op,order: order,pairAdd: pairAdd};
+};
 Elm.Main = Elm.Main || {};
 Elm.Main.make = function (_elm) {
    "use strict";
    _elm.Main = _elm.Main || {};
    if (_elm.Main.values) return _elm.Main.values;
    var _U = Elm.Native.Utils.make(_elm),
-   $Array = Elm.Array.make(_elm),
    $Basics = Elm.Basics.make(_elm),
    $Cards = Elm.Cards.make(_elm),
    $Debug = Elm.Debug.make(_elm),
    $Drawing = Elm.Drawing.make(_elm),
    $Graphics$Collage = Elm.Graphics.Collage.make(_elm),
+   $Graphics$Element = Elm.Graphics.Element.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Random = Elm.Random.make(_elm),
    $Result = Elm.Result.make(_elm),
+   $Rules = Elm.Rules.make(_elm),
    $Signal = Elm.Signal.make(_elm);
    var _op = {};
-   var seed = $Random.initialSeed(98447);
-   var fst = function (_p0) {    var _p1 = _p0;return _p1._0;};
    var main = function () {
       var six = {face: $Cards.Six,suit: $Cards.Diamonds};
       var kin = {face: $Cards.King,suit: $Cards.Spades};
       var two = {face: $Cards.Two,suit: $Cards.Clubs};
-      var ace = {face: $Cards.Queen,suit: $Cards.Hearts};
-      var deck = $Array.fromList(_U.list([ace,two,kin,six]));
-      var card = A2($Maybe.withDefault,ace,fst(A2($Cards.rndFrom,seed,$Cards.sortedDeck)));
-      return A3($Graphics$Collage.collage,400,400,_U.list([A3($Drawing.drawGrid,deck,10,2)]));
+      var ace = {face: $Cards.Ace,suit: $Cards.Hearts};
+      var deck = _U.list([ace,two,kin,six]);
+      var _p0 = $Rules.order(deck);
+      var points = _p0._0;
+      var aces = _p0._1;
+      return A2($Graphics$Element.flow,
+      $Graphics$Element.down,
+      _U.list([A3($Graphics$Collage.collage,400,400,_U.list([A3($Drawing.drawGrid,deck,10,2)]))
+              ,$Graphics$Element.show(A2($Basics._op["++"],
+              $Basics.toString(points),
+              A2($Basics._op["++"]," points, ",A2($Basics._op["++"],$Basics.toString(aces)," ace(s)"))))]));
    }();
-   return _elm.Main.values = {_op: _op,fst: fst,seed: seed,main: main};
+   var seed = $Random.initialSeed(98447);
+   return _elm.Main.values = {_op: _op,seed: seed,main: main};
 };

@@ -1,19 +1,21 @@
-import Graphics.Element exposing (show)
+import Graphics.Element exposing (show, flow, down)
 import Cards exposing (..)
+import Rules
 import Drawing exposing (..)
 import Random
 import Graphics.Collage as C
-import Array
 
-fst (a,b,c) = a
 seed = Random.initialSeed 98447
 main = 
     let
-        ace = {face = Cards.Queen, suit = Cards.Hearts}
+        ace = {face = Cards.Ace, suit = Cards.Hearts}
         two = {face = Cards.Two, suit = Cards.Clubs}
         kin = {face = Cards.King, suit = Cards.Spades}
         six = {face = Cards.Six, suit = Cards.Diamonds}
-        deck = Array.fromList [ace, two, kin, six]
-        card = Maybe.withDefault ace (rndFrom seed sortedDeck |> fst)
+        deck =  [ace, two, kin, six]
+        (points, aces) = Rules.order deck
     in
-        C.collage 400 400 [drawGrid deck 10 2]
+        flow down 
+            [ C.collage 400 400 [drawGrid deck 10 2]
+            , show (toString points ++ " points, " ++ toString aces ++ " ace(s)")
+            ]
