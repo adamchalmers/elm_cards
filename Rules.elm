@@ -3,9 +3,9 @@ module Rules where
 import Cards
 import Array     
             
--- order returns the total points and number of aces
-order : Cards.Deck -> (Int, Int)
-order deck =
+-- pointsAces returns the total points and number of aces
+pointsAces : Cards.Deck -> (Int, Int)
+pointsAces deck =
     case deck of
         [] -> (0,0)
         [card] ->
@@ -37,7 +37,21 @@ order deck =
                 Cards.King ->
                     (10,0)
         card::rest ->
-            pairAdd (order [card]) (order rest)
-            
+            pairAdd (pointsAces [card]) (pointsAces rest)
+
+
+hands : Cards.Deck -> List Int
+hands deck =
+    let
+        (p, naces) = pointsAces deck
+    in
+        case naces of
+            0 -> [p]
+            1 -> [p+1, p+11]
+            2 -> [p+2, p+12]
+            3 -> [p+3, p+13]
+            4 -> [p+4, p+14]
+            _ -> []
+
 pairAdd : (Int, Int) -> (Int, Int) -> (Int, Int)
 pairAdd (a,b) (c,d) = (a+c, b+d)

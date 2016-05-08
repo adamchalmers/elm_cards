@@ -6897,7 +6897,7 @@ Elm.Rules.make = function (_elm) {
    $Signal = Elm.Signal.make(_elm);
    var _op = {};
    var pairAdd = F2(function (_p1,_p0) {    var _p2 = _p1;var _p3 = _p0;return {ctor: "_Tuple2",_0: _p2._0 + _p3._0,_1: _p2._1 + _p3._1};});
-   var order = function (deck) {
+   var pointsAces = function (deck) {
       var _p4 = deck;
       if (_p4.ctor === "[]") {
             return {ctor: "_Tuple2",_0: 0,_1: 0};
@@ -6919,11 +6919,24 @@ Elm.Rules.make = function (_elm) {
                      case "Queen": return {ctor: "_Tuple2",_0: 10,_1: 0};
                      default: return {ctor: "_Tuple2",_0: 10,_1: 0};}
                } else {
-                  return A2(pairAdd,order(_U.list([_p4._0])),order(_p4._1));
+                  return A2(pairAdd,pointsAces(_U.list([_p4._0])),pointsAces(_p4._1));
                }
          }
    };
-   return _elm.Rules.values = {_op: _op,order: order,pairAdd: pairAdd};
+   var hands = function (deck) {
+      var _p6 = pointsAces(deck);
+      var p = _p6._0;
+      var naces = _p6._1;
+      var _p7 = naces;
+      switch (_p7)
+      {case 0: return _U.list([p]);
+         case 1: return _U.list([p + 1,p + 11]);
+         case 2: return _U.list([p + 2,p + 12]);
+         case 3: return _U.list([p + 3,p + 13]);
+         case 4: return _U.list([p + 4,p + 14]);
+         default: return _U.list([]);}
+   };
+   return _elm.Rules.values = {_op: _op,pointsAces: pointsAces,hands: hands,pairAdd: pairAdd};
 };
 Elm.Main = Elm.Main || {};
 Elm.Main.make = function (_elm) {
@@ -6944,22 +6957,26 @@ Elm.Main.make = function (_elm) {
    $Rules = Elm.Rules.make(_elm),
    $Signal = Elm.Signal.make(_elm);
    var _op = {};
-   var main = function () {
+   var playersDeck = function () {
       var six = {face: $Cards.Six,suit: $Cards.Diamonds};
-      var kin = {face: $Cards.King,suit: $Cards.Spades};
+      var kin = {face: $Cards.Ace,suit: $Cards.Spades};
       var two = {face: $Cards.Two,suit: $Cards.Clubs};
       var ace = {face: $Cards.Ace,suit: $Cards.Hearts};
-      var deck = _U.list([ace,two,kin,six]);
-      var _p0 = $Rules.order(deck);
+      return _U.list([ace,two,kin,six]);
+   }();
+   var gui = function (deck) {
+      var _p0 = $Rules.pointsAces(playersDeck);
       var points = _p0._0;
       var aces = _p0._1;
       return A2($Graphics$Element.flow,
       $Graphics$Element.down,
-      _U.list([A3($Graphics$Collage.collage,400,400,_U.list([A3($Drawing.drawGrid,deck,10,2)]))
+      _U.list([A3($Graphics$Collage.collage,400,400,_U.list([A3($Drawing.drawGrid,playersDeck,10,2)]))
               ,$Graphics$Element.show(A2($Basics._op["++"],
               $Basics.toString(points),
-              A2($Basics._op["++"]," points, ",A2($Basics._op["++"],$Basics.toString(aces)," ace(s)"))))]));
-   }();
+              A2($Basics._op["++"]," points, ",A2($Basics._op["++"],$Basics.toString(aces)," ace(s)"))))
+              ,$Graphics$Element.show(A2($Basics._op["++"],"Hands: ",$Basics.toString($Rules.hands(playersDeck))))]));
+   };
+   var main = gui(playersDeck);
    var seed = $Random.initialSeed(98447);
-   return _elm.Main.values = {_op: _op,seed: seed,main: main};
+   return _elm.Main.values = {_op: _op,seed: seed,playersDeck: playersDeck,gui: gui,main: main};
 };
