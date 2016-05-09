@@ -5,7 +5,7 @@ import Cards exposing (..)
 import Rules
 
 import Effects exposing (Effects)
-import Graphics.Element exposing (Element, show, flow, down, leftAligned)
+import Graphics.Element exposing (Element, show, flow, down, right, leftAligned)
 import Graphics.Collage exposing (collage)
 import Html exposing (..)
 import Html.Attributes exposing (style, hidden)
@@ -18,7 +18,7 @@ import Time exposing (Time)
 
 -- MODEL 
 
-(tableWidth, tableHeight, seed) = (400, 100, 345738)
+(canvasWidth, canvasHeight, seed) = (400, 100, 345738)
 
 type alias Model = {deck: Deck, player: Deck, dealer: Deck, state: State}
 type State = PlayerTurn | DealerTurn | PlayerWin | DealerWin
@@ -37,7 +37,7 @@ init =
 
 -- UPDATE
 
-type Action = PlayerDraw | DealerDraw | PlayerPass | Noop
+type Action = PlayerDraw | DealerDraw | PlayerPass | Restart | Noop
 
 update : Action -> Model -> (Model, Effects Action)
 update action model =
@@ -67,6 +67,8 @@ update action model =
             }, Effects.none)
         PlayerPass ->
             ({ model | state = DealerTurn}, Effects.none)
+        Restart ->
+            init
         Noop ->
             (model, Effects.none)
             
@@ -74,22 +76,23 @@ update action model =
 -- VIEW
 view : Signal.Address Action -> Model -> Html
 view address model = 
-  div [ boxStyle]
+  div []
     [ h1 [ h1Style ] [ text "Elm Blackjack"]
-    , button [ onClick address PlayerDraw, hidden (model.state /= PlayerTurn) ] [ text "Draw for player" ]
-    , button [ onClick address PlayerPass, hidden (model.state /= PlayerTurn) ] [ text "Pass" ]
-    , button [ onClick address DealerDraw, hidden (model.state /= DealerTurn) ] [ text "Draw for dealer" ]
-    , fromElement (gui model)
-    , h1 [ h1Style ] [ text (statusText model.state) ]
+    , div [ boxStyle ]
+        [ fromElement (gui model)
+        , p [] [ text (statusText model.state) ]
+        , button [ onClick address PlayerDraw, hidden (model.state /= PlayerTurn), btnStyle ] [ text "Draw" ]
+        , button [ onClick address PlayerPass, hidden (model.state /= PlayerTurn), btnStyle ] [ text "Pass" ]
+        , button [ onClick address DealerDraw, hidden (model.state /= DealerTurn), btnStyle ] [ text "Draw for dealer" ]
+        , button [ onClick address Restart, hidden (model.state /= PlayerWin && model.state /= DealerWin), btnStyle ] [ text "Restart" ]
+        ]
     ]
     
 gui : Model -> Element
 gui model =
     flow down 
-        [ showScore model.player "Player"
-        , collage tableWidth tableHeight [Drawing.row model.player]
-        , showScore model.dealer "Dealer"
-        , collage tableWidth tableHeight [Drawing.row model.dealer]
+        [ flow right [showScore model.dealer "Dealer", collage canvasWidth canvasHeight [Drawing.row model.dealer]]
+        , flow right [showScore model.player "Player", collage canvasWidth canvasHeight [Drawing.row model.player]]
         ]
         
 showScore : Cards.Deck -> String -> Element
@@ -105,18 +108,21 @@ statusText state =
         DealerWin -> "You lose!"
         
 boxStyle : Attribute
-boxStyle = 
-    style 
-        [ ("border", "1px solid black")
-        , ("width", "600px")
-        , ("margin", "0 auto")
-        ]
+boxStyle = style 
+    [ ("border", "1px dashed gray")
+    , ("width", "600px")
+    , ("margin", "0 auto")
+    ]
         
 h1Style : Attribute
-h1Style = 
-    style 
-        [ ("text-align", "center")
-        ]
+h1Style = style 
+    [ ("text-align", "center")
+    ]
+        
+btnStyle : Attribute
+btnStyle = style 
+    [ ("font-size", "1em")
+    ]
         
 -- UTIL
 headOf : List a -> List a

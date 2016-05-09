@@ -11190,8 +11190,9 @@ Elm.Game.make = function (_elm) {
    $Text = Elm.Text.make(_elm);
    var _op = {};
    var headOf = function (l) {    var _p0 = $List.head(l);if (_p0.ctor === "Just") {    return _U.list([_p0._0]);} else {    return _U.list([]);}};
+   var btnStyle = $Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "font-size",_1: "1em"}]));
    var h1Style = $Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "text-align",_1: "center"}]));
-   var boxStyle = $Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "border",_1: "1px solid black"}
+   var boxStyle = $Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "border",_1: "1px dashed gray"}
                                                  ,{ctor: "_Tuple2",_0: "width",_1: "600px"}
                                                  ,{ctor: "_Tuple2",_0: "margin",_1: "0 auto"}]));
    var statusText = function (state) {
@@ -11208,6 +11209,7 @@ Elm.Game.make = function (_elm) {
       A2($Basics._op["++"]," (",A2($Basics._op["++"],$Basics.toString($Rules.score(deck)),")")))));
    });
    var Noop = {ctor: "Noop"};
+   var Restart = {ctor: "Restart"};
    var PlayerPass = {ctor: "PlayerPass"};
    var DealerDraw = {ctor: "DealerDraw"};
    var PlayerDraw = {ctor: "PlayerDraw"};
@@ -11215,9 +11217,20 @@ Elm.Game.make = function (_elm) {
    var PlayerWin = {ctor: "PlayerWin"};
    var DealerTurn = {ctor: "DealerTurn"};
    var PlayerTurn = {ctor: "PlayerTurn"};
+   var Model = F4(function (a,b,c,d) {    return {deck: a,player: b,dealer: c,state: d};});
+   var _p2 = {ctor: "_Tuple3",_0: 400,_1: 100,_2: 345738};
+   var canvasWidth = _p2._0;
+   var canvasHeight = _p2._1;
+   var seed = _p2._2;
+   var init = function () {
+      var _p3 = $Cards.genDeck($Random.initialSeed(seed));
+      var deck = _p3._0;
+      var s1 = _p3._1;
+      return {ctor: "_Tuple2",_0: {deck: deck,player: _U.list([]),dealer: _U.list([]),state: PlayerTurn},_1: $Effects.none};
+   }();
    var update = F2(function (action,model) {
-      var _p2 = action;
-      switch (_p2.ctor)
+      var _p4 = action;
+      switch (_p4.ctor)
       {case "PlayerDraw": return {ctor: "_Tuple2"
                                  ,_0: _U.update(model,
                                  {deck: A2($Maybe.withDefault,_U.list([]),$List.tail(model.deck))
@@ -11235,47 +11248,46 @@ Elm.Game.make = function (_elm) {
                                    $Rules.score(model.player)) < 0 ? DealerTurn : DealerWin})
                                    ,_1: $Effects.none};
          case "PlayerPass": return {ctor: "_Tuple2",_0: _U.update(model,{state: DealerTurn}),_1: $Effects.none};
+         case "Restart": return init;
          default: return {ctor: "_Tuple2",_0: model,_1: $Effects.none};}
    });
-   var Model = F4(function (a,b,c,d) {    return {deck: a,player: b,dealer: c,state: d};});
-   var _p3 = {ctor: "_Tuple3",_0: 400,_1: 100,_2: 345738};
-   var tableWidth = _p3._0;
-   var tableHeight = _p3._1;
-   var seed = _p3._2;
-   var init = function () {
-      var _p4 = $Cards.genDeck($Random.initialSeed(seed));
-      var deck = _p4._0;
-      var s1 = _p4._1;
-      return {ctor: "_Tuple2",_0: {deck: deck,player: _U.list([]),dealer: _U.list([]),state: PlayerTurn},_1: $Effects.none};
-   }();
    var gui = function (model) {
       return A2($Graphics$Element.flow,
       $Graphics$Element.down,
-      _U.list([A2(showScore,model.player,"Player")
-              ,A3($Graphics$Collage.collage,tableWidth,tableHeight,_U.list([$Drawing.row(model.player)]))
-              ,A2(showScore,model.dealer,"Dealer")
-              ,A3($Graphics$Collage.collage,tableWidth,tableHeight,_U.list([$Drawing.row(model.dealer)]))]));
+      _U.list([A2($Graphics$Element.flow,
+              $Graphics$Element.right,
+              _U.list([A2(showScore,model.dealer,"Dealer"),A3($Graphics$Collage.collage,canvasWidth,canvasHeight,_U.list([$Drawing.row(model.dealer)]))]))
+              ,A2($Graphics$Element.flow,
+              $Graphics$Element.right,
+              _U.list([A2(showScore,model.player,"Player"),A3($Graphics$Collage.collage,canvasWidth,canvasHeight,_U.list([$Drawing.row(model.player)]))]))]));
    };
    var view = F2(function (address,model) {
       return A2($Html.div,
-      _U.list([boxStyle]),
+      _U.list([]),
       _U.list([A2($Html.h1,_U.list([h1Style]),_U.list([$Html.text("Elm Blackjack")]))
-              ,A2($Html.button,
-              _U.list([A2($Html$Events.onClick,address,PlayerDraw),$Html$Attributes.hidden(!_U.eq(model.state,PlayerTurn))]),
-              _U.list([$Html.text("Draw for player")]))
-              ,A2($Html.button,
-              _U.list([A2($Html$Events.onClick,address,PlayerPass),$Html$Attributes.hidden(!_U.eq(model.state,PlayerTurn))]),
-              _U.list([$Html.text("Pass")]))
-              ,A2($Html.button,
-              _U.list([A2($Html$Events.onClick,address,DealerDraw),$Html$Attributes.hidden(!_U.eq(model.state,DealerTurn))]),
-              _U.list([$Html.text("Draw for dealer")]))
-              ,$Html.fromElement(gui(model))
-              ,A2($Html.h1,_U.list([h1Style]),_U.list([$Html.text(statusText(model.state))]))]));
+              ,A2($Html.div,
+              _U.list([boxStyle]),
+              _U.list([$Html.fromElement(gui(model))
+                      ,A2($Html.p,_U.list([]),_U.list([$Html.text(statusText(model.state))]))
+                      ,A2($Html.button,
+                      _U.list([A2($Html$Events.onClick,address,PlayerDraw),$Html$Attributes.hidden(!_U.eq(model.state,PlayerTurn)),btnStyle]),
+                      _U.list([$Html.text("Draw")]))
+                      ,A2($Html.button,
+                      _U.list([A2($Html$Events.onClick,address,PlayerPass),$Html$Attributes.hidden(!_U.eq(model.state,PlayerTurn)),btnStyle]),
+                      _U.list([$Html.text("Pass")]))
+                      ,A2($Html.button,
+                      _U.list([A2($Html$Events.onClick,address,DealerDraw),$Html$Attributes.hidden(!_U.eq(model.state,DealerTurn)),btnStyle]),
+                      _U.list([$Html.text("Draw for dealer")]))
+                      ,A2($Html.button,
+                      _U.list([A2($Html$Events.onClick,address,Restart)
+                              ,$Html$Attributes.hidden(!_U.eq(model.state,PlayerWin) && !_U.eq(model.state,DealerWin))
+                              ,btnStyle]),
+                      _U.list([$Html.text("Restart")]))]))]));
    });
    return _elm.Game.values = {_op: _op
+                             ,canvasHeight: canvasHeight
+                             ,canvasWidth: canvasWidth
                              ,seed: seed
-                             ,tableHeight: tableHeight
-                             ,tableWidth: tableWidth
                              ,Model: Model
                              ,PlayerTurn: PlayerTurn
                              ,DealerTurn: DealerTurn
@@ -11285,6 +11297,7 @@ Elm.Game.make = function (_elm) {
                              ,PlayerDraw: PlayerDraw
                              ,DealerDraw: DealerDraw
                              ,PlayerPass: PlayerPass
+                             ,Restart: Restart
                              ,Noop: Noop
                              ,update: update
                              ,view: view
@@ -11293,6 +11306,7 @@ Elm.Game.make = function (_elm) {
                              ,statusText: statusText
                              ,boxStyle: boxStyle
                              ,h1Style: h1Style
+                             ,btnStyle: btnStyle
                              ,headOf: headOf};
 };
 Elm.Main = Elm.Main || {};
