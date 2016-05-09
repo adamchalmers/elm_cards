@@ -11,21 +11,28 @@ import Html exposing (..)
 import Html.Attributes exposing (style, hidden)
 import Html.Events exposing (onClick)
 import Maybe
+import Random
 import StartApp exposing (start)
 import Text
 import Time exposing (Time)
 
 -- MODEL 
 
-type State = PlayerTurn | DealerTurn | PlayerWin | DealerWin
+(tableWidth, tableHeight, seed) = (400, 100, 345738)
+
 type alias Model = {deck: Deck, player: Deck, dealer: Deck, state: State}
+type State = PlayerTurn | DealerTurn | PlayerWin | DealerWin
 
 init : (Model, Effects Action)
-init = ({
-    deck = Cards.sortedDeck, 
-    player = [], 
-    dealer = [],
-    state = PlayerTurn}, Effects.none)
+init = 
+    let
+        (deck, s1) = Cards.genDeck (Random.initialSeed seed)
+    in
+        ({
+        deck = deck,
+        player = [], 
+        dealer = [],
+        state = PlayerTurn}, Effects.none)
 
 -- UPDATE
 
@@ -115,5 +122,3 @@ headOf l =
     case List.head l of
         Just element -> [element]
         Nothing -> []
-        
-(tableWidth, tableHeight) = (400, 100)
