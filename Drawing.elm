@@ -5,24 +5,26 @@ import Color
 import Graphics.Collage as C
 import Text
 
-width = 40
-height = 70
+-- PUBLIC
 
--- Draws a deck of cards in a row, leaving \gap pixels between them.
-drawRow : Cards.Deck -> Int -> C.Form
-drawRow deck gap = 
+-- Draws a deck of cards in a row
+row : Cards.Deck -> C.Form
+row deck = 
     let
         nudge = \i card -> C.move (toFloat ((width+gap)*i), 0) (drawCard card)
     in
         List.indexedMap nudge deck |> C.group
 
-
-drawGrid : Cards.Deck -> Int -> Int -> C.Form
-drawGrid deck gap cols =
+-- Draws a deck with a maximum of \cols columns
+grid : Cards.Deck -> Int -> C.Form
+grid deck cols =
     let
         fn = \i card -> C.move (nudge i cols gap) (drawCard card)
     in
         (List.indexedMap fn deck) |> C.group
+
+
+-- PRIVATE
 
 nudge : Int -> Int -> Int -> (Float, Float)
 nudge i cols gap =
@@ -89,3 +91,4 @@ drawSuit suit =
     
 red = C.filled Color.red
 blk = C.filled Color.black
+(width, height, gap) = (40, 70, 5)

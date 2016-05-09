@@ -23,7 +23,8 @@ intToFace n =
         9 -> Ten
         10 -> Jack
         11 -> Queen
-        _ -> King
+        12 -> King
+        _ -> Debug.crash "There's no 14th card face"
         
 intToSuit : Int -> Suit
 intToSuit n =
@@ -31,7 +32,8 @@ intToSuit n =
         0 -> Clubs
         1 -> Spades
         2 -> Diamonds
-        _ -> Hearts
+        3 -> Hearts
+        _ -> Debug.crash "There's no 5th card suit"
 
 faceToString : Face -> String
 faceToString face = case face of
