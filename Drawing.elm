@@ -1,11 +1,9 @@
-module Drawing where
+module Drawing (row, grid, drawCard) where
 
 import Cards
 import Color
 import Graphics.Collage as C
 import Text
-
--- PUBLIC
 
 -- Draws a deck of cards in a row
 row : Cards.Deck -> C.Form
@@ -15,19 +13,16 @@ row deck =
     in
         List.indexedMap nudge deck |> C.group
 
--- Draws a deck with a maximum of \cols columns
+-- Draws a deck of cards in a grid, with a maximum of \cols columns
 grid : Cards.Deck -> Int -> C.Form
 grid deck cols =
     let
-        fn = \i card -> C.move (nudge i cols gap) (drawCard card)
+        fn = \i card -> C.move (layoutGrid i cols gap) (drawCard card)
     in
         (List.indexedMap fn deck) |> C.group
 
-
--- PRIVATE
-
-nudge : Int -> Int -> Int -> (Float, Float)
-nudge i cols gap =
+layoutGrid : Int -> Int -> Int -> (Float, Float)
+layoutGrid i cols gap =
     let 
         q = i // cols
         r = i `rem` cols
@@ -55,7 +50,7 @@ drawCard card =
 
 drawFace : Color.Color -> Cards.Face -> C.Form
 drawFace col face =
-    Text.color col (Text.fromString (Cards.faceToString face)) |> C.text
+    Text.color col (Text.fromString (faceToString face)) |> C.text
 
 
 drawSuit : Cards.Suit -> C.Form
@@ -88,7 +83,23 @@ drawSuit suit =
             Cards.Diamonds ->
                 red (C.rect w w) |> C.rotate (pi/4)
             
-    
+faceToString : Cards.Face -> String
+faceToString face = 
+    case face of
+        Cards.Ace -> "A"
+        Cards.Two -> "2"
+        Cards.Three -> "3"
+        Cards.Four -> "4"
+        Cards.Five -> "5"
+        Cards.Six -> "6"
+        Cards.Seven -> "7"
+        Cards.Eight -> "8"
+        Cards.Nine -> "9"
+        Cards.Ten -> "10"
+        Cards.Jack -> "J"
+        Cards.Queen -> "Q"
+        Cards.King -> "K"
+
 red = C.filled Color.red
 blk = C.filled Color.black
 (width, height, gap) = (40, 70, 5)

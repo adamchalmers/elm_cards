@@ -34,6 +34,7 @@ init =
         dealer = [],
         state = PlayerTurn}, Effects.none)
 
+
 -- UPDATE
 
 type Action = PlayerDraw | DealerDraw | PlayerPass | Noop
@@ -69,6 +70,7 @@ update action model =
         Noop ->
             (model, Effects.none)
             
+
 -- VIEW
 view : Signal.Address Action -> Model -> Html
 view address model = 
