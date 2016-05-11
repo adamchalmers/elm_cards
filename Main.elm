@@ -1,14 +1,11 @@
-import StartApp
+import Html.App as Html
 import Game exposing (init, update, view)
 
-app =
-  StartApp.start
+main =
+  Html.program
     { init = init
     , update = update
     , view = view
-    , inputs = []
+    , subscriptions = \_ -> Sub.none
     }
 
-
-main =
-  app.html

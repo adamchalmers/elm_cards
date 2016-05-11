@@ -1,7 +1,7 @@
-module Rules (score) where
+module Rules exposing (score)
 
 import Cards
-import Array     
+import Array
 import Debug
 
 -- Returns the number of points a certain Blackjack hand is worth.
@@ -17,18 +17,18 @@ score deck =
             4 -> (p+4, p+14)
             _ -> Debug.crash "How did you get so many aces"
     in
-        options |> \(a,b) -> 
-            if a > b && a <= 21 
-            then a 
+        options |> \(a,b) ->
+            if a > b && a <= 21
+            then a
             else if b > a && b <= 21
                 then b
                 else a
 
-            
+
 -- Returns the total points from non-Ace cards, and number of ace cards in a given Blackjack hand.
 pointsAces : Cards.Deck -> (Int, Int)
 pointsAces deck =
-    let 
+    let
         pairAdd = \(a,b) (c,d) -> (a+c, b+d)
     in
         case deck of

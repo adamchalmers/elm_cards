@@ -1,13 +1,13 @@
-module Drawing (row, grid, drawCard) where
+module Drawing exposing (row, grid, drawCard)
 
 import Cards
 import Color
-import Graphics.Collage as C
+import Collage as C
 import Text
 
 -- Draws a deck of cards in a row
 row : Cards.Deck -> C.Form
-row deck = 
+row deck =
     let
         nudge = \i card -> C.move (toFloat ((width+gap)*i), 0) (drawCard card)
     in
@@ -23,7 +23,7 @@ grid deck cols =
 
 layoutGrid : Int -> Int -> Int -> (Float, Float)
 layoutGrid i cols gap =
-    let 
+    let
         q = i // cols
         r = i `rem` cols
         x = (width+gap)*r
@@ -63,28 +63,28 @@ drawSuit suit =
             Cards.Hearts ->
                 C.group
                     [ red (C.oval w w) |> C.move (-w', 0)
-                    , red (C.oval w w) |> C.move (w', 0) 
-                    , red (C.ngon 3 w) |> C.rotate (pi / -2) |> C.move (0,-w')  
+                    , red (C.oval w w) |> C.move (w', 0)
+                    , red (C.ngon 3 w) |> C.rotate (pi / -2) |> C.move (0,-w')
                     ]
             Cards.Clubs ->
                 C.group
                     [ blk (C.oval w w) |> C.move (-w', 0)
-                    , blk (C.oval w w) |> C.move (w', 0) 
-                    , blk (C.oval w w) |> C.move (0, 3*w/4) 
-                    , blk (C.ngon 3 w') |> C.rotate (pi / 2) |> C.move (0,-3*w/4)  
+                    , blk (C.oval w w) |> C.move (w', 0)
+                    , blk (C.oval w w) |> C.move (0, 3*w/4)
+                    , blk (C.ngon 3 w') |> C.rotate (pi / 2) |> C.move (0,-3*w/4)
                     ]
             Cards.Spades ->
                 C.group
-                    [ blk (C.ngon 3 w) |> C.rotate (pi/2) |> C.move (0, w') -- top tri 
+                    [ blk (C.ngon 3 w) |> C.rotate (pi/2) |> C.move (0, w') -- top tri
                     , blk (C.oval w w) |> C.move (-w', 0) -- left circ
                     , blk (C.oval w w) |> C.move (w', 0) -- right circ
                     , blk (C.ngon 3 w') |> C.rotate (pi / 2) |> C.move (0,w*(-0.6)) -- bottom tri
                     ]
             Cards.Diamonds ->
                 red (C.rect w w) |> C.rotate (pi/4)
-            
+
 faceToString : Cards.Face -> String
-faceToString face = 
+faceToString face =
     case face of
         Cards.Ace -> "A"
         Cards.Two -> "2"
