@@ -28,12 +28,13 @@ type alias Model =
     , dealer: Deck -- Cards belonging to dealer
     , state: State -- Whose turn it is, or whether someone won/lost
     , time: Time.Time -- Current time, to be used as a random seed
+    , winsLosses: (Int, Int) -- How many times the player has won or lost
     }
 
 type State = PlayerTurn | DealerTurn | PlayerWin | DealerWin
 
-init : Time.Time -> (Model, Cmd Msg)
-init time =
+init : Time.Time -> (Int, Int) -> (Model, Cmd Msg)
+init time winsLosses =
     let
         (deck, seed) = Cards.genDeck (Random.initialSeed <| round time)
         (facedown, deck') = (List.take 2 deck, List.drop 2 deck)
@@ -43,18 +44,22 @@ init time =
             , dealer = facedown
             , state = PlayerTurn
             , time = time
+            , winsLosses = winsLosses
             }
     in
         (model, Cmd.none)
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-  Time.every Time.second Tick
+  Sub.batch
+    [ Time.every Time.second Tick
+    , Time.every Time.second DealerDraw
+    ]
 
 
 -- UPDATE
 
-type Msg = PlayerDraw | PlayerPass | Restart | Tick Time.Time | Noop
+type Msg = PlayerDraw | DealerDraw Time.Time | PlayerPass | Restart | Tick Time.Time | Noop
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update action model =
@@ -68,13 +73,7 @@ update action model =
             in
                 ({ m | state = statePlayerTurn m}, Cmd.none)
 
-        PlayerPass ->
-            ({ model | state = stateDealerTurn model}, Cmd.none)
-
-        Restart ->
-            init model.time
-
-        Tick t ->
+        DealerDraw _ ->
             if model.state == DealerTurn
             then
                 let m =
@@ -84,7 +83,16 @@ update action model =
                     }
                 in
                     ({ m | state = stateDealerTurn m}, Cmd.none)
-            else ({ model | time = t}, Cmd.none)
+            else (model, Cmd.none)
+
+        PlayerPass ->
+            ({ model | state = stateDealerTurn model}, Cmd.none)
+
+        Restart ->
+            init model.time (model.winsLosses `pairAdd` (if model.state == PlayerWin then (1, 0) else (0, 1)))
+
+        Tick t ->
+            ({ model | time = t}, Cmd.none)
 
         Noop ->
             (model, Cmd.none)
@@ -94,6 +102,9 @@ pScore m = Rules.score m.player
 
 dScore : Model -> Int
 dScore m = Rules.score m.dealer
+
+pairAdd : ( number, number' ) -> ( number, number' ) -> ( number, number' )
+pairAdd (a,b) (c,d) = (a+c, b+d)
 
 stateDealerTurn : Model -> State
 stateDealerTurn m =
@@ -117,7 +128,7 @@ statePlayerTurn m =
 view : Model -> Html Msg
 view model =
   div []
-    [ h1 [ h1Style ] [ text "Elm Blackjack"]
+    [ h1 [ h1Style ] [ text <| "Elm Blackjack " ++ toString model.winsLosses]
     , div [ boxStyle ]
         [ toHtml (gui model)
         , p [] [ text (statusText model.state) ]
