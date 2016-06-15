@@ -6,7 +6,6 @@ import Rules
 
 import Platform.Cmd as Cmd
 import Element exposing (Element, show, flow, down, right, leftAligned, toHtml)
-import Collage exposing (collage)
 import Html exposing (..)
 import Html.Attributes exposing (style, hidden)
 import Html.Events exposing (onClick)
@@ -14,6 +13,7 @@ import Maybe
 import Platform.Cmd as Cmd
 import Random
 import Text
+import Time
 
 -- CONSTANTS
 
@@ -22,25 +22,38 @@ import Text
 
 -- MODEL
 
-type alias Model = {deck: Deck, player: Deck, dealer: Deck, state: State}
+type alias Model =
+    { deck: Deck -- Deck of cards that both player and dealer will draw from
+    , player: Deck -- Cards belonging to player
+    , dealer: Deck -- Cards belonging to dealer
+    , state: State -- Whose turn it is, or whether someone won/lost
+    , time: Time.Time -- Current time, to be used as a random seed
+    }
 type State = PlayerTurn | DealerTurn | PlayerWin | DealerWin
 
-init : (Model, Cmd Msg)
-init =
+init : Time.Time -> (Model, Cmd Msg)
+init time =
     let
-        (deck, s1) = Cards.genDeck (Random.initialSeed seed)
+        (deck, seed) = Cards.genDeck (Random.initialSeed <| round time)
         (facedown, deck') = (List.take 2 deck, List.drop 2 deck)
+        model =
+            { deck = deck'
+            , player = []
+            , dealer = facedown
+            , state = PlayerTurn
+            , time = time
+            }
     in
-        ({
-        deck = deck',
-        player = [],
-        dealer = facedown,
-        state = PlayerTurn}, Cmd.none)
+        (model, Cmd.none)
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+  Time.every Time.second Tick
 
 
 -- UPDATE
 
-type Msg = PlayerDraw | DealerDraw | PlayerPass | Restart | Noop
+type Msg = PlayerDraw | DealerDraw | PlayerPass | Restart | Tick Time.Time | Noop
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update action model =
@@ -71,7 +84,9 @@ update action model =
         PlayerPass ->
             ({ model | state = DealerTurn}, Cmd.none)
         Restart ->
-            init
+            init model.time
+        Tick t ->
+            ({ model | time = t}, Cmd.none)
         Noop ->
             (model, Cmd.none)
 
