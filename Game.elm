@@ -127,18 +127,17 @@ statePlayerTurn m =
 -- VIEW
 view : Model -> Html Msg
 view model =
-  div []
-    [ h1 [ h1Style ] [ text <| "Elm Blackjack " ++ toString model.winsLosses]
+  div [bodyStyle]
+    [ h1 [ h1Style ] [ text "Elm Blackjack"]
     , div [ boxStyle ]
-        [ toHtml (gui model)
-        , p [] [ text (statusText model.state) ]
+        [ gui model
+        , p [] [ text (statusText model) ]
         , button [ onClick PlayerDraw, hidden (model.state /= PlayerTurn), btnStyle ] [ text "Draw" ]
         , button [ onClick PlayerPass, hidden (model.state /= PlayerTurn), btnStyle ] [ text "Pass" ]
         , button [ onClick Restart, hidden (model.state /= PlayerWin && model.state /= DealerWin), btnStyle ] [ text "Restart" ]
         ]
     ]
 
-gui : Model -> Element
 gui model =
     let
         (numHidden, dealerScore) =
@@ -146,30 +145,54 @@ gui model =
             then (2, Text.fromString "Dealer" |> leftAligned)
             else (0, showScore model.dealer "Dealer")
     in
-        flow down
-            [ dealerScore
-            , flow right <| Drawing.elemRow numHidden model.dealer
-            , showScore model.player "Player"
-            , flow right <| Drawing.elemRow 0 model.player
+        Html.table []
+            [ Html.tr []
+              [ Html.td [] [toHtml dealerScore]
+              , Html.td [] [toHtml (Drawing.elemRow numHidden model.dealer |> flow right)]
+              ]
+            , Html.tr []
+              [ Html.td [] [toHtml <| showScore model.player "Player" ]
+              , Html.td [] [toHtml (Drawing.elemRow 0 model.player |> flow right)]
+              ]
             ]
+        -- flow down
+        --     [ dealerScore
+        --     , flow right <| Drawing.elemRow numHidden model.dealer
+        --     , showScore model.player "Player"
+        --     , flow right <| Drawing.elemRow 0 model.player
+        --     ]
 
 showScore : Cards.Deck -> String -> Element
 showScore deck name =
     Text.fromString (name ++ " (" ++ (Rules.score deck |> toString) ++ ")") |> leftAligned
 
-statusText : State -> String
-statusText state =
-    case state of
-        PlayerTurn -> "It's your turn"
-        DealerTurn -> "It's the dealer's turn"
-        PlayerWin -> "You won!"
-        DealerWin -> "You lose!"
+statusText : Model -> String
+statusText model  =
+    let
+        statusText = case model.state of
+            PlayerTurn -> "It's your turn."
+            DealerTurn -> "It's the dealer's turn."
+            PlayerWin -> "You won!"
+            DealerWin -> "You lose!"
+        (w, l) = model.winsLosses
+    in
+        statusText ++ " " ++ "You've won " ++ toString w ++ " games and lost " ++ toString l ++ "."
 
 boxStyle : Attribute msg
 boxStyle = style
     [ ("border", "1px dashed gray")
     , ("width", "600px")
     , ("margin", "0 auto")
+    ]
+
+bodyStyle : Attribute msg
+bodyStyle = style
+    [ ("font-family", "sans-serif")
+    ]
+
+tableStyle : Attribute msg
+tableStyle = style
+    [ ("border-spacing", "10px 5px")
     ]
 
 h1Style : Attribute msg
