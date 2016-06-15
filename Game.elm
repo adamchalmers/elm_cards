@@ -29,6 +29,7 @@ type alias Model =
     , state: State -- Whose turn it is, or whether someone won/lost
     , time: Time.Time -- Current time, to be used as a random seed
     }
+
 type State = PlayerTurn | DealerTurn | PlayerWin | DealerWin
 
 init : Time.Time -> (Model, Cmd Msg)
@@ -53,43 +54,64 @@ subscriptions model =
 
 -- UPDATE
 
-type Msg = PlayerDraw | DealerDraw | PlayerPass | Restart | Tick Time.Time | Noop
+type Msg = PlayerDraw | PlayerPass | Restart | Tick Time.Time | Noop
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update action model =
     case action of
         PlayerDraw ->
-            ({ model
-            | deck = Maybe.withDefault [] (List.tail model.deck)
-            , player = model.player ++ (headOf model.deck)
-            , state =
-                if Rules.score (model.player ++ (headOf model.deck)) < 21
-                then PlayerTurn
-                else if Rules.score (model.player ++ (headOf model.deck)) == 21
-                then PlayerWin
-                else DealerWin
-            }, Cmd.none)
-        DealerDraw ->
-            ({ model
-            | deck = Maybe.withDefault [] (List.tail model.deck)
-            , dealer = model.dealer ++ (headOf model.deck)
-            , state =
-                if Rules.score (model.dealer ++ (headOf model.deck)) > 21
-                then PlayerWin
-                else if Rules.score (model.dealer ++ (headOf model.deck)) <= 21 &&
-                    Rules.score (model.dealer ++ (headOf model.deck)) < Rules.score model.player
-                then DealerTurn
-                else DealerWin
-            }, Cmd.none)
+            let m =
+                { model
+                | deck = Maybe.withDefault [] (List.tail model.deck)
+                , player = model.player ++ (headOf model.deck)
+                }
+            in
+                ({ m | state = statePlayerTurn m}, Cmd.none)
+
         PlayerPass ->
-            ({ model | state = DealerTurn}, Cmd.none)
+            ({ model | state = stateDealerTurn model}, Cmd.none)
+
         Restart ->
             init model.time
+
         Tick t ->
-            ({ model | time = t}, Cmd.none)
+            if model.state == DealerTurn
+            then
+                let m =
+                    { model
+                    | deck = Maybe.withDefault [] (List.tail model.deck)
+                    , dealer = model.dealer ++ (headOf model.deck)
+                    }
+                in
+                    ({ m | state = stateDealerTurn m}, Cmd.none)
+            else ({ model | time = t}, Cmd.none)
+
         Noop ->
             (model, Cmd.none)
 
+pScore : Model -> Int
+pScore m = Rules.score m.player
+
+dScore : Model -> Int
+dScore m = Rules.score m.dealer
+
+stateDealerTurn : Model -> State
+stateDealerTurn m =
+    if dScore m > 21
+    then PlayerWin
+    else if dScore m == 21
+    then DealerWin
+    else if dScore m < 21 && dScore m < pScore m
+    then DealerTurn
+    else DealerWin
+
+statePlayerTurn : Model -> State
+statePlayerTurn m =
+    if pScore m > 21
+    then DealerWin
+    else if pScore m == 21
+    then PlayerWin
+    else PlayerTurn
 
 -- VIEW
 view : Model -> Html Msg
@@ -101,7 +123,6 @@ view model =
         , p [] [ text (statusText model.state) ]
         , button [ onClick PlayerDraw, hidden (model.state /= PlayerTurn), btnStyle ] [ text "Draw" ]
         , button [ onClick PlayerPass, hidden (model.state /= PlayerTurn), btnStyle ] [ text "Pass" ]
-        , button [ onClick DealerDraw, hidden (model.state /= DealerTurn), btnStyle ] [ text "Draw for dealer" ]
         , button [ onClick Restart, hidden (model.state /= PlayerWin && model.state /= DealerWin), btnStyle ] [ text "Restart" ]
         ]
     ]
