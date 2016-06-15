@@ -26,6 +26,7 @@ elemRow numHidden deck =
 drawFacedown : C.Form
 drawFacedown =
     let
+        border = 2
         numTiles = 100 -- make this high enough to properly tile the entire card area
         cols = 4 -- enough columns to properly tile the entire card width
         radius = 5 -- size of each tile shape
@@ -39,7 +40,9 @@ drawFacedown =
         tiles = C.group (List.map tile [0..numTiles]) -- tiles to draw on top of the background
         background = C.filled Color.red (C.rect width height)
     in
-        C.group <| [background] ++ [tiles]
+        C.group <| [ C.rect width height |> C.filled Color.black
+                   , C.filled Color.red (C.rect (width-border) (height-border))
+                   ] ++ [tiles]
 
 drawFaceup : Cards.Card -> C.Form
 drawFaceup card =
