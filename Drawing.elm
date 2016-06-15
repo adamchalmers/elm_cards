@@ -1,38 +1,50 @@
-module Drawing exposing (row, grid, drawCard)
+module Drawing exposing (row, drawFaceup, drawFacedown)
 
 import Cards
 import Color
 import Collage as C
 import Text
 
+-- CONSTANTS
+red = C.filled Color.red
+blk = C.filled Color.black
+(width, height, gap) = (40, 70, 5)
+
 -- Draws a deck of cards in a row
-row : Cards.Deck -> C.Form
-row deck =
+row : Cards.Deck -> Int -> C.Form
+row deck numHidden =
     let
-        nudge = \i card -> C.move (toFloat ((width+gap)*i), 0) (drawCard card)
+        -- Moves a card into the i-th position in a row
+        nudge : Int -> Int -> Cards.Card -> C.Form
+        nudge numHidden i card =
+            let
+                drawFunc = if i < numHidden then drawFacedown else drawFaceup card
+            in
+                C.move (toFloat ((width+gap)*i), 0) drawFunc
     in
-        List.indexedMap nudge deck |> C.group
+        List.indexedMap (nudge numHidden) deck |> C.group
 
--- Draws a deck of cards in a grid, with a maximum of \cols columns
-grid : Cards.Deck -> Int -> C.Form
-grid deck cols =
+-- Draws a face down card with a nice tiled pattern.
+drawFacedown : C.Form
+drawFacedown =
     let
-        fn = \i card -> C.move (layoutGrid i cols gap) (drawCard card)
+        numTiles = 100 -- make this high enough to properly tile the entire card area
+        cols = 4 -- enough columns to properly tile the entire card width
+        radius = 5 -- size of each tile shape
+        tile n = -- function to actually produce each tile shape
+            let
+                x = toFloat (n `rem` cols)
+                y = toFloat (n // cols)
+                tileShape = C.filled Color.white (C.ngon 4 radius) -- the actual form for each tile shape
+            in
+                C.move (radius * 2 * x - width/2 + radius, radius * 2 * y - height/2 + radius) tileShape
+        tiles = C.group (List.map tile [0..numTiles]) -- tiles to draw on top of the background
+        background = C.filled Color.red (C.rect width height)
     in
-        (List.indexedMap fn deck) |> C.group
+        C.group <| [background] ++ [tiles]
 
-layoutGrid : Int -> Int -> Int -> (Float, Float)
-layoutGrid i cols gap =
-    let
-        q = i // cols
-        r = i `rem` cols
-        x = (width+gap)*r
-        y = (height+gap)*q
-    in
-        (toFloat x, toFloat y)
-
-drawCard : Cards.Card -> C.Form
-drawCard card =
+drawFaceup : Cards.Card -> C.Form
+drawFaceup card =
     let
         col = case card.suit of
             Cards.Diamonds -> Color.red
@@ -99,7 +111,3 @@ faceToString face =
         Cards.Jack -> "J"
         Cards.Queen -> "Q"
         Cards.King -> "K"
-
-red = C.filled Color.red
-blk = C.filled Color.black
-(width, height, gap) = (40, 70, 5)

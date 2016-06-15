@@ -14,11 +14,13 @@ import Maybe
 import Platform.Cmd as Cmd
 import Random
 import Text
-import Time exposing (Time)
 
--- MODEL
+-- CONSTANTS
 
 (canvasWidth, canvasHeight, seed) = (400, 100, 345738)
+
+
+-- MODEL
 
 type alias Model = {deck: Deck, player: Deck, dealer: Deck, state: State}
 type State = PlayerTurn | DealerTurn | PlayerWin | DealerWin
@@ -27,11 +29,12 @@ init : (Model, Cmd Msg)
 init =
     let
         (deck, s1) = Cards.genDeck (Random.initialSeed seed)
+        (facedown, deck') = (List.take 2 deck, List.drop 2 deck)
     in
         ({
-        deck = deck,
+        deck = deck',
         player = [],
-        dealer = [],
+        dealer = facedown,
         state = PlayerTurn}, Cmd.none)
 
 
@@ -90,10 +93,16 @@ view model =
 
 gui : Model -> Element
 gui model =
-    flow down
-        [ flow right [showScore model.dealer "Dealer", collage canvasWidth canvasHeight [Drawing.row model.dealer]]
-        , flow right [showScore model.player "Player", collage canvasWidth canvasHeight [Drawing.row model.player]]
-        ]
+    let
+        (numHidden, dealerScore) =
+            if model.state == PlayerTurn
+            then (2, Text.fromString "Dealer" |> leftAligned)
+            else (0, showScore model.dealer "Dealer")
+    in
+        flow down
+            [ flow right [dealerScore, collage canvasWidth canvasHeight [Drawing.row model.dealer numHidden]]
+            , flow right [showScore model.player "Player", collage canvasWidth canvasHeight [Drawing.row model.player 0]]
+            ]
 
 showScore : Cards.Deck -> String -> Element
 showScore deck name =
