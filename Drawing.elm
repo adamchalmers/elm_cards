@@ -17,7 +17,7 @@ elemRow : Int -> Cards.Deck -> List Element
 elemRow numHidden deck =
     let
         collage = C.collage (width+gap) (height+gap)
-        drawFn i card = collage [(drawFaceup card)]
+        drawFn i card = collage [if i < numHidden then drawFacedown else (drawFaceup card)]
         nullElement = collage [] -- to ensure it's the right size
     in
         List.indexedMap drawFn deck ++ [nullElement]
