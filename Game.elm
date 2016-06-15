@@ -100,8 +100,10 @@ gui model =
             else (0, showScore model.dealer "Dealer")
     in
         flow down
-            [ flow right [dealerScore, collage canvasWidth canvasHeight [Drawing.row model.dealer numHidden]]
-            , flow right [showScore model.player "Player", collage canvasWidth canvasHeight [Drawing.row model.player 0]]
+            [ dealerScore
+            , flow right <| Drawing.elemRow numHidden model.dealer
+            , showScore model.player "Player"
+            , flow right <| Drawing.elemRow 0 model.player
             ]
 
 showScore : Cards.Deck -> String -> Element

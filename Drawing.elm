@@ -1,8 +1,9 @@
-module Drawing exposing (row, drawFaceup, drawFacedown)
+module Drawing exposing (elemRow, drawFaceup, drawFacedown)
 
 import Cards
 import Color
 import Collage as C
+import Element exposing (Element)
 import Text
 
 -- CONSTANTS
@@ -10,19 +11,16 @@ red = C.filled Color.red
 blk = C.filled Color.black
 (width, height, gap) = (40, 70, 5)
 
--- Draws a deck of cards in a row
-row : Cards.Deck -> Int -> C.Form
-row deck numHidden =
+
+-- Draws a deck of cards as a list of DOM elements, plus a null element to ensure the DOM has the right height for an empty list.
+elemRow : Int -> Cards.Deck -> List Element
+elemRow numHidden deck =
     let
-        -- Moves a card into the i-th position in a row
-        nudge : Int -> Int -> Cards.Card -> C.Form
-        nudge numHidden i card =
-            let
-                drawFunc = if i < numHidden then drawFacedown else drawFaceup card
-            in
-                C.move (toFloat ((width+gap)*i), 0) drawFunc
+        collage = C.collage (width+gap) (height+gap)
+        drawFn i card = collage [(drawFaceup card)]
+        nullElement = collage [] -- to ensure it's the right size
     in
-        List.indexedMap (nudge numHidden) deck |> C.group
+        List.indexedMap drawFn deck ++ [nullElement]
 
 -- Draws a face down card with a nice tiled pattern.
 drawFacedown : C.Form
